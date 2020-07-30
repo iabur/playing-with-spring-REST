@@ -13,10 +13,13 @@ import org.springframework.web.bind.annotation.*;
 public class userController {
     @Autowired
     UserService userService;
-    
-    @GetMapping
-    public String getUser() {
-        return "Get all user";
+
+    @GetMapping(path = "/{id}")
+    public UserRest getUser(@PathVariable String id) {
+        UserRest returnValue = new UserRest();
+        UserDto userDto = userService.getUserByUserId(id);
+        BeanUtils.copyProperties(userDto, returnValue);
+        return returnValue;
     }
 
     @PostMapping
