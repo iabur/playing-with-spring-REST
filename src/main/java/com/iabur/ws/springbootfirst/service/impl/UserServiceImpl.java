@@ -31,14 +31,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         UserEntity userEntity = userRepository.findByEmail(email);
-        if(userEntity == null) throw new UsernameNotFoundException(email);
+        if (userEntity == null) throw new UsernameNotFoundException(email);
         return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), new ArrayList<>());
     }
 
     @Override
     public UserDto createUser(UserDto userDto) {
 
-        if(userRepository.findByEmail(userDto.getEmail())!=null) throw new UserServiceException(ErrorMessages.EMAIL_ADDRESS_NOT_VERIFIED.getErrorMessage());
+        if (userRepository.findByEmail(userDto.getEmail()) != null)
+            throw new UserServiceException(ErrorMessages.EMAIL_ADDRESS_NOT_VERIFIED.getErrorMessage());
         UserEntity userEntity = new UserEntity();
         BeanUtils.copyProperties(userDto, userEntity);
 
@@ -58,9 +59,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getUser(String username) {
         UserEntity userEntity = userRepository.findByEmail(username);
-        if(userEntity == null) throw new UsernameNotFoundException(username);
+        if (userEntity == null) throw new UsernameNotFoundException(username);
         UserDto returnValue = new UserDto();
-        BeanUtils.copyProperties(userEntity,returnValue);
+        BeanUtils.copyProperties(userEntity, returnValue);
         return returnValue;
     }
 
@@ -74,6 +75,23 @@ public class UserServiceImpl implements UserService {
 
         BeanUtils.copyProperties(userEntity, returnValue);
 
+        return returnValue;
+    }
+
+    @Override
+    public UserDto updateUser(String userId, UserDto user) {
+        UserDto returnValue = new UserDto();
+
+        UserEntity userEntity = userRepository.findByUserId(userId);
+
+        if (userEntity == null)
+            throw new UserServiceException(ErrorMessages.NO_RECORD_FOUND.getErrorMessage());
+
+        userEntity.setFirstName(user.getFirstName());
+        userEntity.setLastName(user.getLastName());
+
+        UserEntity updatedUserDetails = userRepository.save(userEntity);
+        BeanUtils.copyProperties(updatedUserDetails, returnValue);
         return returnValue;
     }
 }
