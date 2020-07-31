@@ -3,6 +3,8 @@ package com.iabur.ws.springbootfirst.ui.controller;
 import com.iabur.ws.springbootfirst.service.UserService;
 import com.iabur.ws.springbootfirst.shared.dto.UserDto;
 import com.iabur.ws.springbootfirst.ui.model.request.UserDetailsRequestModel;
+import com.iabur.ws.springbootfirst.ui.model.response.OperationStatusModel;
+import com.iabur.ws.springbootfirst.ui.model.response.RequestOperationStatus;
 import com.iabur.ws.springbootfirst.ui.model.response.UserRest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,15 +43,19 @@ public class userController {
         UserRest returnValue = new UserRest();
 
         UserDto userDto = new UserDto();
-        BeanUtils.copyProperties(userDetails,userDto);
+        BeanUtils.copyProperties(userDetails, userDto);
         UserDto updateUser = userService.updateUser(id, userDto);
         BeanUtils.copyProperties(updateUser, returnValue);
 
         return returnValue;
     }
 
-    @DeleteMapping
-    public String deleteUser() {
-        return "Delete user";
+    @DeleteMapping(path = "/{id}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public OperationStatusModel deleteUser(@PathVariable String id) {
+        OperationStatusModel returnValue = new OperationStatusModel();
+        returnValue.setOperationName(RequestOperationName.DELETE.name());
+        userService.deleteUser(id);
+        returnValue.setOperationStatus(RequestOperationStatus.SUCCESS.name());
+        return returnValue;
     }
 }
