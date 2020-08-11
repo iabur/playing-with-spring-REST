@@ -5,8 +5,10 @@ import com.iabur.ws.springbootfirst.io.entity.UserEntity;
 import com.iabur.ws.springbootfirst.io.repository.UserRepository;
 import com.iabur.ws.springbootfirst.service.UserService;
 import com.iabur.ws.springbootfirst.shared.Utils;
+import com.iabur.ws.springbootfirst.shared.dto.AddressDTO;
 import com.iabur.ws.springbootfirst.shared.dto.UserDto;
 import com.iabur.ws.springbootfirst.ui.model.response.ErrorMessages;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -44,8 +46,16 @@ public class UserServiceImpl implements UserService {
 
         if (userRepository.findByEmail(userDto.getEmail()) != null)
             throw new UserServiceException(ErrorMessages.EMAIL_ADDRESS_NOT_VERIFIED.getErrorMessage());
-        UserEntity userEntity = new UserEntity();
-        BeanUtils.copyProperties(userDto, userEntity);
+        for(int i=0;i<userDto.getAddresses().size();i++)
+        {
+            AddressDTO address = userDto.getAddresses().get(i);
+            address.setUserDetails(userDto);
+            address.setAddressId(utils.generateAddressId(30));
+            userDto.getAddresses().set(i, address);
+        }
+
+        ModelMapper modelMapper = new ModelMapper();
+        UserEntity userEntity = modelMapper.map(userDto, UserEntity.class);
 
         String publicUserId = utils.generateUserId(30);
 
@@ -53,9 +63,7 @@ public class UserServiceImpl implements UserService {
         userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(userDto.getPassword()));
 
         UserEntity storedValue = userRepository.save(userEntity);
-        UserDto returnValue = new UserDto();
-        BeanUtils.copyProperties(storedValue, returnValue);
-
+        UserDto returnValue = modelMapper.map(storedValue, UserDto.class);
 
         return returnValue;
     }
